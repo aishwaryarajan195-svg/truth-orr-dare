@@ -1,0 +1,329 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Truth or Dare | After Dark</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --bg:#100b1b;--card:#20152e;--pink:#ff4fa3;
+  --purple:#a855f7;--text:#fff7ff;--muted:#c4b5d5;
+}
+body{
+  margin:0;min-height:100vh;padding:22px;
+  font-family:system-ui,Arial,sans-serif;color:var(--text);
+  background:radial-gradient(ellipse at top,#49205f 0%,#100b1b 65%);
+}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.container{max-width:700px;margin:auto}
+header{text-align:center;padding:24px 0}
+.logo{font-size:13px;letter-spacing:5px;color:#f0abfc}
+h1{font-size:clamp(35px,8vw,58px);margin:12px 0}
+h1 span{color:var(--pink)}
+.subtitle{color:var(--muted)}
+.card{
+  background:rgba(32,21,46,.94);border:1px solid #56376b;
+  border-radius:23px;padding:24px;margin-bottom:18px;
+  box-shadow:0 18px 55px #0004;
+}
+label{display:block;color:var(--muted);font-size:13px;margin-bottom:8px}
+input,select{
+  width:100%;padding:13px;border-radius:11px;
+  background:#130d20;border:1px solid #654779;color:white;
+}
+.row{display:flex;gap:10px}
+.row>*{flex:1;min-width:0}
+.btn{
+  padding:14px;border:0;border-radius:12px;
+  font-weight:750;color:white;
+  background:linear-gradient(110deg,#a855f7,#ec4899);
+}
+.btn.secondary{background:#392747;border:1px solid #684c7d}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.full{width:100%;margin-top:12px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.choice{
+  min-height:140px;border-radius:18px;border:1px solid #704080;
+  background:#2b193c;color:white;font-size:24px;font-weight:800;
+  transition:.2s;
+}
+.choice:hover{transform:translateY(-3px);border-color:var(--pink)}
+.choice span{display:block;font-size:45px;margin-bottom:8px}
+.pink{color:#ff8bc3}
+.center{text-align:center}
+#prompt{font-size:clamp(21px,5vw,30px);line-height:1.45;margin:25px 0}
+.tag{
+  display:inline-block;background:#42254e;color:#f5b9ff;
+  border-radius:30px;padding:6px 12px;font-size:12px;
+}
+#playerLabel{color:#f0abfc;font-weight:700}
+.players{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.player{
+  background:#352342;border:1px solid #664579;border-radius:30px;
+  padding:7px 12px;font-size:13px;
+}
+.player.active{background:#762d70;border-color:#ff7fc1}
+.hidden{display:none!important}
+.note{font-size:12px;line-height:1.6;color:var(--muted)}
+footer{text-align:center;color:#a998b8;font-size:12px;padding:12px}
+@media(max-width:480px){
+ body{padding:12px}.card{padding:18px}
+ .choices{gap:9px}.choice{min-height:120px;font-size:20px}
+}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+  <div class="logo">THE ULTIMATE PARTY GAME</div>
+  <h1>TRUTH <span>OR</span> DARE</h1>
+  <p class="subtitle">Your friends. Your secrets. Your next move. 🎲</p>
+</header>
+
+<section class="card" id="setup">
+  <h2>🥂 Set up your game</h2>
+  <label for="playerInput">Add players (one at a time)</label>
+  <div class="row">
+    <input id="playerInput" placeholder="Enter a player's name">
+    <button class="btn" id="addBtn">Add +</button>
+  </div>
+  <div class="players" id="playerList"></div>
+  <p class="note">Add at least one player. Take turns passing the device around.</p>
+  <label for="mode">Choose your vibe</label>
+  <select id="mode">
+    <option value="chill">🌿 Chill — easy and funny</option>
+    <option value="spicy">🌶️ Spicy — bold and personal</option>
+    <option value="extreme">🔥 Wild — daring and chaotic</option>
+  </select>
+  <button class="btn full" id="startBtn">LET'S PLAY →</button>
+</section>
+
+<section class="card center hidden" id="game">
+  <div class="tag" id="roundLabel">ROUND 1</div>
+  <h2 id="playerLabel">Player's turn</h2>
+  <p class="subtitle">Choose your fate...</p>
+  <div class="choices">
+    <button class="choice" id="truthBtn"><span>🤫</span>TRUTH</button>
+    <button class="choice" id="dareBtn"><span>😈</span>DARE</button>
+  </div>
+  <p class="note">No pressure. Anyone can pass on a prompt.</p>
+</section>
+
+<section class="card center hidden" id="challenge">
+  <div class="tag" id="typeLabel">TRUTH</div>
+  <h2 id="prompt">Your prompt appears here</h2>
+  <p class="note" id="challengeNote">Keep it fun and respect everyone's boundaries.</p>
+  <button class="btn full" id="doneBtn">DONE — NEXT PLAYER →</button>
+  <button class="btn secondary full" id="skipBtn">🔄 Get another prompt</button>
+  <button class="btn secondary full" id="backBtn">← Back to Truth or Dare</button>
+</section>
+
+<section class="card hidden" id="end">
+  <h2 class="center">🎉 Thanks for playing!</h2>
+  <p class="center">The party isn't over until you say so.</p>
+  <button class="btn full" id="againBtn">PLAY ANOTHER ROUND</button>
+  <button class="btn secondary full" id="editBtn">CHANGE PLAYERS / MODE</button>
+</section>
+
+<footer>AFTER DARK • GOOD VIBES ONLY • PASS ANYTIME</footer>
+</div>
+
+<script>
+const prompts = {
+  chill:{
+    truth:[
+      "What is the funniest thing you've done to impress someone?",
+      "What is your most embarrassing autocorrect moment?",
+      "What's a popular movie you secretly dislike?",
+      "What's the weirdest thing in your search history that you'd admit to?",
+      "What's your most useless talent?",
+      "Who here would survive longest on a deserted island, and why?",
+      "What's the silliest reason you've ever cancelled plans?",
+      "What's one song you know every word to?",
+      "What's your most irrational fear?",
+      "What's the worst fashion choice you've ever made?"
+    ],
+    dare:[
+      "Do your best celebrity impression for 20 seconds.",
+      "Sing the chorus of a song chosen by the group.",
+      "Talk like a news reporter until your next turn.",
+      "Do your funniest dance for 15 seconds.",
+      "Try to make everyone laugh in 30 seconds.",
+      "Invent a dramatic movie title for the person on your left.",
+      "Describe your day like it's a nature documentary.",
+      "Give a 20-second motivational speech about a spoon.",
+      "Say the alphabet backwards as far as you can.",
+      "Let the group pick a harmless new nickname for you this round."
+    ]
+  },
+  spicy:{
+    truth:[
+      "What's your biggest green flag in a partner?",
+      "Have you ever had a crush on someone you didn't expect?",
+      "What's your biggest dating turn-off?",
+      "What's the boldest move you've made on a crush?",
+      "What's a dating opinion you would defend passionately?",
+      "Have you ever reread old messages because you missed someone?",
+      "What's your most memorable first date?",
+      "What's a compliment you still remember?",
+      "What's one thing people misunderstand about your love life?",
+      "Would you rather make the first move or be approached?"
+    ],
+    dare:[
+      "Give someone in the group a genuine, specific compliment.",
+      "Deliver your best fictional dating-app opening line.",
+      "Act out how you flirt when you're nervous.",
+      "Create a dramatic 15-second rom-com scene with a willing partner.",
+      "Describe your ideal date using only five words.",
+      "Let the group choose a harmless emoji for your next status—no posting required.",
+      "Give your best confident runway walk across the room.",
+      "Invent a cheesy pickup line for an everyday object.",
+      "Read a fictional love confession with maximum drama.",
+      "Pitch yourself as the lead in a romantic comedy."
+    ]
+  },
+  extreme:{
+    truth:[
+      "What's a decision you made that taught you the most?",
+      "What's a misconception people have about you?",
+      "What's the most spontaneous thing you've done?",
+      "What personal goal are you determined to achieve?",
+      "What's a boundary you've learned to protect?",
+      "What's a fear you'd like to overcome?",
+      "What's one lesson you learned the hard way?",
+      "What's something you wish you'd started earlier?",
+      "What's the boldest dream you have for your future?",
+      "What's a time you surprised yourself with your courage?"
+    ],
+    dare:[
+      "Do a 30-second stand-up comedy set about everyday life.",
+      "Perform a dramatic slow-motion action scene.",
+      "Make up a rap about the group in 20 seconds.",
+      "Give a passionate acceptance speech for an imaginary award.",
+      "Speak in rhymes until your next turn.",
+      "Do 10 jumping jacks if you're comfortable doing so.",
+      "Act like a movie villain explaining an ordinary plan.",
+      "Improvise a commercial for the nearest harmless object.",
+      "Tell a completely fictional story with a dramatic plot twist.",
+      "Let the group choose a silly pose for your victory photo—only if you want one."
+    ]
+  }
+};
+
+let players = [];
+let current = 0;
+let round = 1;
+let currentType = "truth";
+let used = new Set();
+
+const $ = id => document.getElementById(id);
+
+function show(id){
+  ["setup","game","challenge","end"].forEach(x =>
+    $(x).classList.toggle("hidden",x!==id));
+}
+
+function renderPlayers(){
+  $("playerList").replaceChildren();
+  players.forEach((name,i)=>{
+    const chip=document.createElement("span");
+    chip.className="player";
+    chip.textContent=name+" ×";
+    chip.title="Remove "+name;
+    chip.style.cursor="pointer";
+    chip.onclick=()=>{
+      players.splice(i,1);
+      if(current>=players.length)current=0;
+      renderPlayers();
+    };
+    $("playerList").appendChild(chip);
+  });
+}
+
+function addPlayer(){
+  const name=$("playerInput").value.trim();
+  if(!name)return;
+  if(players.length>=20){alert("Maximum 20 players.");return;}
+  if(players.some(p=>p.toLowerCase()===name.toLowerCase())){
+    alert("That player has already been added.");return;
+  }
+  players.push(name);
+  $("playerInput").value="";
+  renderPlayers();
+  $("playerInput").focus();
+}
+
+$("addBtn").onclick=addPlayer;
+$("playerInput").addEventListener("keydown",e=>{
+  if(e.key==="Enter")addPlayer();
+});
+
+$("startBtn").onclick=()=>{
+  if(players.length===0){
+    alert("Add at least one player first!");
+    return;
+  }
+  current=0;
+  round=1;
+  used.clear();
+  show("game");
+  renderTurn();
+};
+
+function renderTurn(){
+  $("playerLabel").textContent="🎯 "+players[current]+"'s turn";
+  $("roundLabel").textContent="ROUND "+round;
+}
+
+function pickPrompt(type){
+  currentType=type;
+  const mode=$("mode").value;
+  const list=prompts[mode][type];
+  let available=list.map((_,i)=>i).filter(i=>
+    !used.has(mode+"-"+type+"-"+i));
+  if(available.length===0){
+    list.forEach((_,i)=>used.delete(mode+"-"+type+"-"+i));
+    available=list.map((_,i)=>i);
+  }
+  const index=available[Math.floor(Math.random()*available.length)];
+  used.add(mode+"-"+type+"-"+index);
+
+  $("typeLabel").textContent=type==="truth"?"🤫 TRUTH":"😈 DARE";
+  $("prompt").textContent=list[index];
+  $("challengeNote").textContent=
+    type==="truth"
+    ?"Share only what you're comfortable sharing. Passing is always allowed."
+    :"Keep it safe, legal and respectful. You can always pass or swap the dare.";
+  show("challenge");
+}
+
+$("truthBtn").onclick=()=>pickPrompt("truth");
+$("dareBtn").onclick=()=>pickPrompt("dare");
+
+$("doneBtn").onclick=()=>{
+  current=(current+1)%players.length;
+  if(current===0)round++;
+  renderTurn();
+  show("game");
+};
+
+$("skipBtn").onclick=()=>pickPrompt(currentType);
+$("backBtn").onclick=()=>show("game");
+
+$("againBtn").onclick=()=>{
+  current=(current+1)%players.length;
+  if(current===0)round++;
+  renderTurn();
+  show("game");
+};
+
+$("editBtn").onclick=()=>{
+  show("setup");
+  renderPlayers();
+};
+</script>
+</body>
+</html>
